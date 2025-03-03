@@ -1,5 +1,7 @@
+import 'package:aigeminiapp/services/gemini_flutter_service.dart';
+import 'package:aigeminiapp/services/gemini_google_service.dart';
+import 'package:aigeminiapp/widgets/prompt_elevated_button.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gemini/flutter_gemini.dart';
 
 class GeminiAiHomePage extends StatefulWidget {
   const GeminiAiHomePage({super.key});
@@ -10,21 +12,35 @@ class GeminiAiHomePage extends StatefulWidget {
 
 class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
   final TextEditingController _textController = TextEditingController();
+  final TextEditingController _textGeminiController = TextEditingController();
 
   String results = "";
 
-  processsInput() {
-    Gemini.instance.prompt(parts: [
-      Part.text(_textController.text),
-    ]).then((value) {
-      print(value?.output);
-      results = value!.output!;
-      setState(() {});
-    }).catchError(
-      (e) {
-        print('error $e');
-      },
-    );
+  late GeminiGoogleService googleGemini;
+
+  final GeminiFlutterService _geminiFlutterService = GeminiFlutterService();
+
+  @override
+  void initState() {
+    super.initState();
+    googleGemini = GeminiGoogleService();
+  }
+
+  void processWithFlutterGemini() async {
+    String? response =
+        await _geminiFlutterService.getResponse(_textController.text);
+    results = response ?? 'No response';
+    _textController.clear();
+    setState(() {});
+  }
+
+  void processWithGoogleGemini() async {
+    String? response =
+        await googleGemini.getResponse(_textGeminiController.text);
+
+    results = response ?? 'No response received';
+    _textGeminiController.clear();
+    setState(() {});
   }
 
   // Todo: Results
@@ -33,26 +49,67 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.amber,
         title: const Text('Gemini App'),
+        centerTitle: true,
       ),
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.all(12),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Text(results),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _textController,
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: SingleChildScrollView(
+                  child: Text(
+                    results,
+                    style: const TextStyle(fontSize: 16),
                   ),
                 ),
-                InkWell(
-                  child: Icon(Icons.send),
-                  onTap: () {
-                    processsInput();
-                  },
+              ),
+            ),
+            const SizedBox(
+              height: 12,
+            ),
+            ListView(
+              shrinkWrap: true,
+              children: [
+                TextFormField(
+                  decoration: InputDecoration(
+                    labelText: 'Enter your query with Google Gemini: ',
+                    border: OutlineInputBorder(),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                  ),
+                  controller: _textGeminiController,
                 ),
+                const SizedBox(
+                  height: 5,
+                ),
+                PromptElevatedButton(
+                    label: " Send to Google Gemini",
+                    onPressed: processWithGoogleGemini),
+                const SizedBox(
+                  height: 30,
+                ),
+                TextFormField(
+                  decoration: InputDecoration(
+                    labelText: 'Enter your query with Flutter Gemini: ',
+                    border: OutlineInputBorder(),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                  ),
+                  controller: _textController,
+                ),
+                const SizedBox(
+                  height: 5,
+                ),
+                PromptElevatedButton(
+                    label: " Send to Flutter Gemini",
+                    onPressed: processWithFlutterGemini),
               ],
             ),
           ],
