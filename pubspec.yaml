@@ -18,6 +18,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_gemini: ^3.0.0
   google_generative_ai: ^0.4.6
+  dash_chat_2: ^0.0.21
 
 dev_dependencies:
   flutter_test:
