@@ -30,15 +30,15 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
   }
 
   void processWithFlutterGemini() async {
+    String userInput = _textController.text;
+    _textController.clear();
+
     ChatMessage chatMessage = ChatMessage(
-        user: ChatUserModel.user,
-        createdAt: DateTime.now(),
-        text: _textController.text);
+        user: ChatUserModel.user, createdAt: DateTime.now(), text: userInput);
     chatUserModel.messages.insert(0, chatMessage);
     setState(() {});
 
-    String? response =
-        await _geminiFlutterService.getResponse(_textController.text);
+    String? response = await _geminiFlutterService.getResponse(userInput);
     results = response ?? 'No response';
 
     ChatMessage chatMessageAI = ChatMessage(
@@ -51,15 +51,17 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
   }
 
   void processWithGoogleGemini() async {
+    String userInput = _textController.text;
+    _textController.clear();
+    //  _textGeminiController.clear();
+    // String userInput = _textGeminiController.text;
     ChatMessage chatMessage = ChatMessage(
-        user: ChatUserModel.user,
-        createdAt: DateTime.now(),
-        text: _textController.text);
+        user: ChatUserModel.user, createdAt: DateTime.now(), text: userInput);
     chatUserModel.messages.insert(0, chatMessage);
     setState(() {});
     // String? response =
-    //     await googleGemini.getResponse(_textGeminiController.text);
-    String? response = await googleGemini.getResponse(_textController.text);
+    //     await googleGemini.getResponse(userInput);
+    String? response = await googleGemini.getResponse(userInput);
 
     results = response ?? 'No response received';
     ChatMessage chatMessageAI = ChatMessage(
@@ -127,12 +129,9 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
     return Expanded(
       child: DashChat(
         currentUser: ChatUserModel.user,
-        onSend: (ChatMessage m) {
-          setState(() {
-            chatUserModel.messages.insert(0, m);
-          });
-        },
+        onSend: (ChatMessage m) {},
         messages: chatUserModel.messages,
+        readOnly: true,
       ),
     );
   }
