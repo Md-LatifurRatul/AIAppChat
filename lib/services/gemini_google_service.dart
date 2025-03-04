@@ -10,9 +10,9 @@ class GeminiGoogleService {
           apiKey: SecretKey.apiKey,
         );
 
-  Future<String?> getResponse(String propt) async {
+  Future<String?> getResponse(String prompt) async {
     try {
-      final content = [Content.text(propt)];
+      final content = [Content.text(prompt)];
 
       final response = await model.generateContent(content);
       print(response.text);

@@ -1,6 +1,8 @@
+import 'package:aigeminiapp/model/chat_user_model.dart';
 import 'package:aigeminiapp/services/gemini_flutter_service.dart';
 import 'package:aigeminiapp/services/gemini_google_service.dart';
-import 'package:aigeminiapp/widgets/prompt_elevated_button.dart';
+// import 'package:aigeminiapp/widgets/prompt_elevated_button.dart';
+import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:flutter/material.dart';
 
 class GeminiAiHomePage extends StatefulWidget {
@@ -12,13 +14,14 @@ class GeminiAiHomePage extends StatefulWidget {
 
 class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
   final TextEditingController _textController = TextEditingController();
-  final TextEditingController _textGeminiController = TextEditingController();
+  // final TextEditingController _textGeminiController = TextEditingController();
 
   String results = "";
 
   late GeminiGoogleService googleGemini;
 
   final GeminiFlutterService _geminiFlutterService = GeminiFlutterService();
+  final ChatUserModel chatUserModel = ChatUserModel();
 
   @override
   void initState() {
@@ -27,19 +30,43 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
   }
 
   void processWithFlutterGemini() async {
+    ChatMessage chatMessage = ChatMessage(
+        user: ChatUserModel.user,
+        createdAt: DateTime.now(),
+        text: _textController.text);
+    chatUserModel.messages.insert(0, chatMessage);
+    setState(() {});
+
     String? response =
         await _geminiFlutterService.getResponse(_textController.text);
     results = response ?? 'No response';
-    _textController.clear();
+
+    ChatMessage chatMessageAI = ChatMessage(
+        user: ChatUserModel.geminiUser,
+        createdAt: DateTime.now(),
+        text: results);
+    chatUserModel.messages.insert(0, chatMessageAI);
+
     setState(() {});
   }
 
   void processWithGoogleGemini() async {
-    String? response =
-        await googleGemini.getResponse(_textGeminiController.text);
+    ChatMessage chatMessage = ChatMessage(
+        user: ChatUserModel.user,
+        createdAt: DateTime.now(),
+        text: _textController.text);
+    chatUserModel.messages.insert(0, chatMessage);
+    setState(() {});
+    // String? response =
+    //     await googleGemini.getResponse(_textGeminiController.text);
+    String? response = await googleGemini.getResponse(_textController.text);
 
     results = response ?? 'No response received';
-    _textGeminiController.clear();
+    ChatMessage chatMessageAI = ChatMessage(
+        user: ChatUserModel.geminiUser,
+        createdAt: DateTime.now(),
+        text: results);
+    chatUserModel.messages.insert(0, chatMessageAI);
     setState(() {});
   }
 
@@ -57,59 +84,37 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
         padding: const EdgeInsets.all(12),
         child: Column(
           children: [
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: SingleChildScrollView(
-                  child: Text(
-                    results,
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ),
-              ),
-            ),
+            _promtOutputText(),
             const SizedBox(
               height: 12,
             ),
-            ListView(
-              shrinkWrap: true,
+            // _buildSearch(),
+            Row(
               children: [
-                TextFormField(
-                  decoration: InputDecoration(
-                    labelText: 'Enter your query with Google Gemini: ',
-                    border: OutlineInputBorder(),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                Expanded(
+                  child: TextFormField(
+                    controller: _textController,
+                    decoration: InputDecoration(
+                      hintText: 'Enter the question?',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
-                  controller: _textGeminiController,
                 ),
                 const SizedBox(
-                  height: 5,
+                  width: 5,
                 ),
-                PromptElevatedButton(
-                    label: " Send to Google Gemini",
-                    onPressed: processWithGoogleGemini),
-                const SizedBox(
-                  height: 30,
-                ),
-                TextFormField(
-                  decoration: InputDecoration(
-                    labelText: 'Enter your query with Flutter Gemini: ',
-                    border: OutlineInputBorder(),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    shape: const CircleBorder(),
+                    iconColor: Colors.white,
+                    backgroundColor: Colors.blue,
                   ),
-                  controller: _textController,
-                ),
-                const SizedBox(
-                  height: 5,
-                ),
-                PromptElevatedButton(
-                    label: " Send to Flutter Gemini",
-                    onPressed: processWithFlutterGemini),
+                  onPressed: () {
+                    // processWithGoogleGemini();
+                    processWithFlutterGemini();
+                  },
+                  label: Icon(Icons.send),
+                )
               ],
             ),
           ],
@@ -117,4 +122,76 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
       ),
     );
   }
+
+  Widget _promtOutputText() {
+    return Expanded(
+      child: DashChat(
+        currentUser: ChatUserModel.user,
+        onSend: (ChatMessage m) {
+          setState(() {
+            chatUserModel.messages.insert(0, m);
+          });
+        },
+        messages: chatUserModel.messages,
+      ),
+    );
+  }
+
+  // Widget _buildSearch() {
+  //   return ListView(
+  //     shrinkWrap: true,
+  //     children: [
+  //       TextFormField(
+  //         decoration: InputDecoration(
+  //           labelText: 'Enter your query with Google Gemini: ',
+  //           border: OutlineInputBorder(),
+  //           contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+  //         ),
+  //         controller: _textGeminiController,
+  //       ),
+  //       const SizedBox(
+  //         height: 5,
+  //       ),
+  //       PromptElevatedButton(
+  //           label: " Send to Google Gemini",
+  //           onPressed: processWithGoogleGemini),
+  //       const SizedBox(
+  //         height: 30,
+  //       ),
+  //       TextFormField(
+  //         decoration: InputDecoration(
+  //           labelText: 'Enter your query with Flutter Gemini: ',
+  //           border: OutlineInputBorder(),
+  //           contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+  //         ),
+  //         controller: _textController,
+  //       ),
+  //       const SizedBox(
+  //         height: 5,
+  //       ),
+  //       PromptElevatedButton(
+  //           label: " Send to Flutter Gemini",
+  //           onPressed: processWithFlutterGemini),
+  //     ],
+  //   );
+  // }
+
+  // Widget _promtOutputText() {
+  //   return Expanded(
+  //     child: Container(
+  //       width: double.infinity,
+  //       padding: const EdgeInsets.all(12),
+  //       decoration: BoxDecoration(
+  //         color: Colors.grey[200],
+  //         borderRadius: BorderRadius.circular(10),
+  //       ),
+  //       child: SingleChildScrollView(
+  //         child: Text(
+  //   results,
+  //   style: const TextStyle(fontSize: 16),
+  // ),
+  //       ),
+  //     ),
+  //   );
+  // }
 }
