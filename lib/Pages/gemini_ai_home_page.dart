@@ -127,7 +127,8 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
         setState(() {});
       }
     } else {
-      String? response = await googleGemini.getResponse(userInput);
+      // Using Multi-chat Gemini Model chat model
+      String? response = await googleGemini.getResponseChat(userInput);
 
       results = response ?? 'No response received';
       ChatMessage chatMessageAI = ChatMessage(
@@ -135,11 +136,21 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
           createdAt: DateTime.now(),
           text: results);
       chatUserModel.messages.insert(0, chatMessageAI);
+
       setState(() {});
     }
-  }
 
-  // Todo: Results
+    //Using Gemini Prompt model
+
+    // String? response = await googleGemini.getResponse(userInput);
+    // results = response ?? 'No response received';
+    // ChatMessage chatMessageAI = ChatMessage(
+    //     user: ChatUserModel.geminiUser,
+    //     createdAt: DateTime.now(),
+    //     text: results);
+    // chatUserModel.messages.insert(0, chatMessageAI);
+    // setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
