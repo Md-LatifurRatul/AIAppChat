@@ -127,29 +127,73 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
         setState(() {});
       }
     } else {
-      // Using Multi-chat Gemini Model chat model
-      String? response = await googleGemini.getResponseChat(userInput);
+      //Using Gemini Prompt model
 
-      results = response ?? 'No response received';
-      ChatMessage chatMessageAI = ChatMessage(
+      // String? response = await googleGemini.getResponse(userInput);
+      // results = response ?? 'No response received';
+      // ChatMessage chatMessageAI = ChatMessage(
+      //     user: ChatUserModel.geminiUser,
+      //     createdAt: DateTime.now(),
+      //     text: results);
+      // chatUserModel.messages.insert(0, chatMessageAI);
+      // setState(() {});
+
+      //Using Multi-chat Gemini Model chat model
+
+      // String? response = await googleGemini.getResponseChat(userInput);
+
+      // results = response ?? 'No response received';
+      // ChatMessage chatMessageAI = ChatMessage(
+      //     user: ChatUserModel.geminiUser,
+      //     createdAt: DateTime.now(),
+      //     text: results);
+      // chatUserModel.messages.insert(0, chatMessageAI);
+
+      // setState(() {});
+
+      //Using Gemini Streaming content Method
+
+      bool isFirst = true;
+      results = "";
+
+      googleGemini.generateContentStreamChat(userInput).listen((response) {
+        if (isFirst) {
+          isFirst = false;
+        } else {
+          chatUserModel.messages.removeAt(0);
+        }
+
+        if (response.text != null && response.text!.isNotEmpty) {
+          results += response.text!;
+          ChatMessage chatMessageAI = ChatMessage(
+            user: ChatUserModel.geminiUser,
+            createdAt: DateTime.now(),
+            text: results,
+          );
+
+          if (chatUserModel.messages.isNotEmpty &&
+              chatUserModel.messages[0].user == ChatUserModel.geminiUser) {
+            chatUserModel.messages[0] = chatMessageAI;
+          } else {
+            chatUserModel.messages.insert(0, chatMessageAI);
+          }
+
+          setState(() {});
+        }
+      }, onError: (error) {
+        print('Error streaming response: $error');
+
+        ChatMessage chatMessageAI = ChatMessage(
           user: ChatUserModel.geminiUser,
           createdAt: DateTime.now(),
-          text: results);
-      chatUserModel.messages.insert(0, chatMessageAI);
-
-      setState(() {});
+          text: "Error generating response.",
+        );
+        chatUserModel.messages.insert(0, chatMessageAI);
+        setState(() {});
+      }, onDone: () {
+        print('Streaming done');
+      });
     }
-
-    //Using Gemini Prompt model
-
-    // String? response = await googleGemini.getResponse(userInput);
-    // results = response ?? 'No response received';
-    // ChatMessage chatMessageAI = ChatMessage(
-    //     user: ChatUserModel.geminiUser,
-    //     createdAt: DateTime.now(),
-    //     text: results);
-    // chatUserModel.messages.insert(0, chatMessageAI);
-    // setState(() {});
   }
 
   @override

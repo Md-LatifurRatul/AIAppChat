@@ -7,10 +7,14 @@ class GeminiGoogleService {
   late GenerativeModel model;
   late ChatSession chat;
   List<Content> conversationHistory = [];
+  // final String _modelName = 'gemini-1.5-flash-latest';
 
+  // final String _modelName1 = 'gemini-pro-vision';
+  // final String _modelName2 = 'gemini-1.5-pro';
+  final String _modelName3 = "gemini-2.0-flash";
   GeminiGoogleService() {
     model = GenerativeModel(
-      model: 'gemini-1.5-flash-latest',
+      model: _modelName3,
       apiKey: SecretKey.apiKey,
     );
     chat = model.startChat();
@@ -61,5 +65,10 @@ class GeminiGoogleService {
       print('Error from Gemini: $e');
       return 'Error processing request';
     }
+  }
+
+  Stream<GenerateContentResponse> generateContentStreamChat(
+      String userMessage) {
+    return chat.sendMessageStream(Content.text(userMessage));
   }
 }
