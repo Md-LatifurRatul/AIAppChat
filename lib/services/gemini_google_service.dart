@@ -5,12 +5,16 @@ import 'package:mime/mime.dart';
 
 class GeminiGoogleService {
   late GenerativeModel model;
+  late ChatSession chat;
+  List<Content> conversationHistory = [];
 
-  GeminiGoogleService()
-      : model = GenerativeModel(
-          model: 'gemini-1.5-flash-latest',
-          apiKey: SecretKey.apiKey,
-        );
+  GeminiGoogleService() {
+    model = GenerativeModel(
+      model: 'gemini-1.5-flash-latest',
+      apiKey: SecretKey.apiKey,
+    );
+    chat = model.startChat();
+  }
 
   Future<String?> getResponse(String prompt) async {
     try {
@@ -41,6 +45,21 @@ class GeminiGoogleService {
     } catch (e) {
       print('Error from google_generative_ai (image): ${e.toString()}');
       return null;
+    }
+  }
+
+  Future<String?> getResponseChat(String userMessage) async {
+    try {
+      final response = await chat.sendMessage(Content.text(userMessage));
+
+      if (response.text != null && response.text!.isNotEmpty) {
+        return response.text;
+      } else {
+        return 'No response received';
+      }
+    } catch (e) {
+      print('Error from Gemini: $e');
+      return 'Error processing request';
     }
   }
 }
