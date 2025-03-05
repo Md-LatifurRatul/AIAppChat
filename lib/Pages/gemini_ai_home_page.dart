@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'package:aigeminiapp/model/chat_user_model.dart';
 import 'package:aigeminiapp/services/gemini_flutter_service.dart';
 import 'package:aigeminiapp/services/gemini_google_service.dart';
 // import 'package:aigeminiapp/widgets/prompt_elevated_button.dart';
 import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class GeminiAiHomePage extends StatefulWidget {
   const GeminiAiHomePage({super.key});
@@ -15,8 +17,12 @@ class GeminiAiHomePage extends StatefulWidget {
 class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
   final TextEditingController _textController = TextEditingController();
   // final TextEditingController _textGeminiController = TextEditingController();
+  late ImagePicker imagePicker;
 
   String results = "";
+
+  bool selectedImage = false;
+  late File imageSelected;
 
   late GeminiGoogleService googleGemini;
 
@@ -27,6 +33,28 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
   void initState() {
     super.initState();
     googleGemini = GeminiGoogleService();
+    imagePicker = ImagePicker();
+  }
+
+  Future<void> _pickImage() async {
+    final XFile? image =
+        await imagePicker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      selectedImage = true;
+      imageSelected = File(image.path);
+
+      ChatMessage chatMessage = ChatMessage(
+          user: ChatUserModel.user,
+          createdAt: DateTime.now(),
+          text: '',
+          medias: [
+            ChatMedia(
+                url: image.path, fileName: image.name, type: MediaType.image),
+          ]);
+      chatUserModel.messages.insert(0, chatMessage);
+      setState(() {});
+    }
   }
 
   void processWithFlutterGemini() async {
@@ -38,16 +66,28 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
     chatUserModel.messages.insert(0, chatMessage);
     setState(() {});
 
-    String? response = await _geminiFlutterService.getResponse(userInput);
-    results = response ?? 'No response';
+    if (selectedImage) {
+      selectedImage = false;
 
-    ChatMessage chatMessageAI = ChatMessage(
-        user: ChatUserModel.geminiUser,
-        createdAt: DateTime.now(),
-        text: results);
-    chatUserModel.messages.insert(0, chatMessageAI);
+      // ChatMessage chatMessageAI = ChatMessage(
+      //     user: ChatUserModel.geminiUser,
+      //     createdAt: DateTime.now(),
+      //     text: results);
+      // chatUserModel.messages.insert(0, chatMessageAI);
 
-    setState(() {});
+      // setState(() {});
+    } else {
+      String? response = await _geminiFlutterService.getResponse(userInput);
+      results = response ?? 'No response';
+
+      ChatMessage chatMessageAI = ChatMessage(
+          user: ChatUserModel.geminiUser,
+          createdAt: DateTime.now(),
+          text: results);
+      chatUserModel.messages.insert(0, chatMessageAI);
+
+      setState(() {});
+    }
   }
 
   void processWithGoogleGemini() async {
@@ -61,15 +101,42 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
     setState(() {});
     // String? response =
     //     await googleGemini.getResponse(userInput);
-    String? response = await googleGemini.getResponse(userInput);
 
-    results = response ?? 'No response received';
-    ChatMessage chatMessageAI = ChatMessage(
-        user: ChatUserModel.geminiUser,
-        createdAt: DateTime.now(),
-        text: results);
-    chatUserModel.messages.insert(0, chatMessageAI);
-    setState(() {});
+    if (selectedImage) {
+      selectedImage = false;
+      try {
+        String? response =
+            await googleGemini.getResponseWithImage(userInput, imageSelected);
+
+        results = response ?? 'No response received';
+        ChatMessage chatMessageAI = ChatMessage(
+          user: ChatUserModel.geminiUser,
+          createdAt: DateTime.now(),
+          text: results,
+        );
+        chatUserModel.messages.insert(0, chatMessageAI);
+        setState(() {});
+      } catch (e) {
+        print('Error processing image: $e');
+        ChatMessage chatMessageAI = ChatMessage(
+          user: ChatUserModel.geminiUser,
+          createdAt: DateTime.now(),
+          text: 'Error processing image.',
+        );
+        chatUserModel.messages.insert(0, chatMessageAI);
+        setState(() {});
+      }
+    } else {
+      String? response = await googleGemini.getResponse(userInput);
+
+      results = response ?? 'No response received';
+      ChatMessage chatMessageAI = ChatMessage(
+          user: ChatUserModel.geminiUser,
+          createdAt: DateTime.now(),
+          text: results);
+      chatUserModel.messages.insert(0, chatMessageAI);
+      setState(() {});
+    }
   }
 
   // Todo: Results
@@ -99,6 +166,12 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
                     decoration: InputDecoration(
                       hintText: 'Enter the question?',
                       border: OutlineInputBorder(),
+                      suffixIcon: IconButton(
+                        onPressed: () {
+                          _pickImage();
+                        },
+                        icon: Icon(Icons.image),
+                      ),
                     ),
                   ),
                 ),
@@ -112,8 +185,8 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
                     backgroundColor: Colors.blue,
                   ),
                   onPressed: () {
-                    // processWithGoogleGemini();
-                    processWithFlutterGemini();
+                    processWithGoogleGemini();
+                    // processWithFlutterGemini();
                   },
                   label: Icon(Icons.send),
                 )
@@ -193,4 +266,11 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
   //     ),
   //   );
   // }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    // _textGeminiController.dispose();
+    super.dispose();
+  }
 }
