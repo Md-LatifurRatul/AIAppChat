@@ -6,6 +6,7 @@ import 'package:aigeminiapp/widgets/search_elevated_button.dart';
 // import 'package:aigeminiapp/widgets/prompt_elevated_button.dart';
 import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
@@ -22,6 +23,9 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
   // final TextEditingController _textGeminiController = TextEditingController();
 
   final SpeechToText _speechToText = SpeechToText();
+
+  FlutterTts flutterTts = FlutterTts();
+
   bool speechEnabled = false;
   String _lastWords = '';
   late ImagePicker imagePicker;
@@ -36,12 +40,34 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
   final GeminiFlutterService _geminiFlutterService = GeminiFlutterService();
   final ChatUserModel chatUserModel = ChatUserModel();
 
+  bool isTTS = false;
+
   @override
   void initState() {
     super.initState();
     googleGemini = GeminiGoogleService();
     imagePicker = ImagePicker();
     _initSpeech();
+    loadSpeachData();
+  }
+
+  loadSpeachData() async {
+    // List<dynamic> languages = await flutterTts.getLanguages;
+    // List<dynamic> voices = await flutterTts.getVoices;
+
+    // for (var e in languages) {
+    //   print("Language = $e");
+    // }
+    // for (var e in voices) {
+    //   print("Voices = $e");
+    // }
+    // flutterTts.setLanguage('bn-BD');
+    flutterTts.setLanguage('en-US');
+    flutterTts.setVoice({"name": "en-us-x-iol-local", "locale": "en-US"});
+
+    // flutterTts.setLanguage('ja-JP');
+
+    // flutterTts.setLanguage('ur-PK');
   }
 
   void _initSpeech() async {
@@ -60,10 +86,12 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
   }
 
   void _onSpeechResult(SpeechRecognitionResult result) {
+    _lastWords = result.recognizedWords;
+    _textController.text = _lastWords;
     if (result.finalResult) {
       setState(() {
-        _lastWords = result.recognizedWords;
-        _textController.text = _lastWords;
+        // _lastWords = result.recognizedWords;
+        // _textController.text = _lastWords;
         processWithGoogleGemini();
       });
     }
@@ -142,6 +170,11 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
             await googleGemini.getResponseWithImage(userInput, imageSelected);
 
         results = response ?? 'No response received';
+
+        if (isTTS) {
+          flutterTts.speak(results);
+        }
+
         ChatMessage chatMessageAI = ChatMessage(
           user: ChatUserModel.geminiUser,
           createdAt: DateTime.now(),
@@ -224,8 +257,15 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
         chatUserModel.messages.insert(0, chatMessageAI);
         setState(() {});
       }, onDone: () {
+        handleDone();
         print('Streaming done');
       });
+    }
+  }
+
+  void handleDone() {
+    if (isTTS) {
+      flutterTts.speak(results);
     }
   }
 
@@ -236,6 +276,27 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
         backgroundColor: Colors.amber,
         title: const Text('Gemini App'),
         centerTitle: true,
+        actions: [
+          InkWell(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(
+                isTTS ? Icons.surround_sound : Icons.mic_off,
+                size: 30,
+                color: Colors.blueAccent,
+              ),
+            ),
+            onTap: () {
+              setState(() {
+                if (isTTS) {
+                  isTTS = false;
+                } else {
+                  isTTS = true;
+                }
+              });
+            },
+          )
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(12),
