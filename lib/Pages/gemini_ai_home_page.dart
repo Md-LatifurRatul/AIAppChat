@@ -2,10 +2,13 @@ import 'dart:io';
 import 'package:aigeminiapp/model/chat_user_model.dart';
 import 'package:aigeminiapp/services/gemini_flutter_service.dart';
 import 'package:aigeminiapp/services/gemini_google_service.dart';
+import 'package:aigeminiapp/widgets/search_elevated_button.dart';
 // import 'package:aigeminiapp/widgets/prompt_elevated_button.dart';
 import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:speech_to_text/speech_recognition_result.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
 class GeminiAiHomePage extends StatefulWidget {
   const GeminiAiHomePage({super.key});
@@ -17,6 +20,10 @@ class GeminiAiHomePage extends StatefulWidget {
 class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
   final TextEditingController _textController = TextEditingController();
   // final TextEditingController _textGeminiController = TextEditingController();
+
+  final SpeechToText _speechToText = SpeechToText();
+  bool speechEnabled = false;
+  String _lastWords = '';
   late ImagePicker imagePicker;
 
   String results = "";
@@ -34,6 +41,32 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
     super.initState();
     googleGemini = GeminiGoogleService();
     imagePicker = ImagePicker();
+    _initSpeech();
+  }
+
+  void _initSpeech() async {
+    speechEnabled = await _speechToText.initialize();
+    setState(() {});
+  }
+
+  void _startListening() async {
+    await _speechToText.listen(onResult: _onSpeechResult);
+    setState(() {});
+  }
+
+  void stopListening() async {
+    await _speechToText.stop();
+    setState(() {});
+  }
+
+  void _onSpeechResult(SpeechRecognitionResult result) {
+    if (result.finalResult) {
+      setState(() {
+        _lastWords = result.recognizedWords;
+        _textController.text = _lastWords;
+        processWithGoogleGemini();
+      });
+    }
   }
 
   Future<void> _pickImage() async {
@@ -233,18 +266,19 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
                 const SizedBox(
                   width: 5,
                 ),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    shape: const CircleBorder(),
-                    iconColor: Colors.white,
-                    backgroundColor: Colors.blue,
-                  ),
+                SearchElevatedButton(
+                  bgColor: Colors.green.shade400,
+                  icon: Icon(Icons.mic),
                   onPressed: () {
-                    processWithGoogleGemini();
-                    // processWithFlutterGemini();
+                    _startListening();
                   },
-                  label: Icon(Icons.send),
-                )
+                ),
+                SearchElevatedButton(
+                  bgColor: Colors.blue,
+                  icon: Icon(Icons.send),
+                  onPressed: processWithGoogleGemini,
+                  // processWithFlutterGemini();
+                ),
               ],
             ),
           ],
