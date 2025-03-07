@@ -7,7 +7,7 @@ class AiApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'AI App',
+      title: 'AI-Chat',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         appBarTheme: _appBarStyleTheme(),
@@ -16,7 +16,6 @@ class AiApp extends StatelessWidget {
           seedColor: Colors.deepPurple,
         ),
       ),
-      // initialBinding: ControllerBinder(),
       home: const AiHomePage(),
     );
   }
