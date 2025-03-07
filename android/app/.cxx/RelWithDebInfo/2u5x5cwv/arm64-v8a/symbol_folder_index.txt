@@ -1,0 +1,1 @@
+D:\A Flutter Projects\aigeminiapp\build\app\intermediates\cxx\RelWithDebInfo\2u5x5cwv\obj\arm64-v8a

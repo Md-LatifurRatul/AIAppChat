@@ -11,14 +11,14 @@ import 'package:image_picker/image_picker.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
-class GeminiAiHomePage extends StatefulWidget {
-  const GeminiAiHomePage({super.key});
+class AiHomePage extends StatefulWidget {
+  const AiHomePage({super.key});
 
   @override
-  State<GeminiAiHomePage> createState() => _GeminiAiHomePageState();
+  State<AiHomePage> createState() => _AiHomePageState();
 }
 
-class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
+class _AiHomePageState extends State<AiHomePage> {
   final TextEditingController _textController = TextEditingController();
   // final TextEditingController _textGeminiController = TextEditingController();
 

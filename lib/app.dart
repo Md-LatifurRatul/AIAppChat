@@ -1,13 +1,13 @@
-import 'package:aigeminiapp/Pages/gemini_ai_home_page.dart';
+import 'package:aigeminiapp/Pages/ai_home_page.dart';
 import 'package:flutter/material.dart';
 
-class GeminiAiApp extends StatelessWidget {
-  const GeminiAiApp({super.key});
+class AiApp extends StatelessWidget {
+  const AiApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Gemini App',
+      title: 'AI App',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         appBarTheme: _appBarStyleTheme(),
@@ -16,7 +16,8 @@ class GeminiAiApp extends StatelessWidget {
           seedColor: Colors.deepPurple,
         ),
       ),
-      home: const GeminiAiHomePage(),
+      // initialBinding: ControllerBinder(),
+      home: const AiHomePage(),
     );
   }
 
