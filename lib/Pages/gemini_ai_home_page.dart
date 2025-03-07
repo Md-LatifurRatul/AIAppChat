@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:aigeminiapp/model/chat_user_model.dart';
 import 'package:aigeminiapp/services/gemini_flutter_service.dart';
 import 'package:aigeminiapp/services/gemini_google_service.dart';
-import 'package:aigeminiapp/widgets/search_elevated_button.dart';
+import 'package:aigeminiapp/widgets/submit_elevated_button.dart';
 // import 'package:aigeminiapp/widgets/prompt_elevated_button.dart';
 import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +21,8 @@ class GeminiAiHomePage extends StatefulWidget {
 class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
   final TextEditingController _textController = TextEditingController();
   // final TextEditingController _textGeminiController = TextEditingController();
+
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   final SpeechToText _speechToText = SpeechToText();
 
@@ -165,34 +167,7 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
     //     await googleGemini.getResponse(userInput);
 
     if (selectedImage) {
-      selectedImage = false;
-      try {
-        String? response =
-            await googleGemini.getResponseWithImage(userInput, imageSelected);
-
-        results = response ?? 'No response received';
-
-        if (isTTS) {
-          flutterTts.speak(results);
-        }
-
-        ChatMessage chatMessageAI = ChatMessage(
-          user: ChatUserModel.geminiUser,
-          createdAt: DateTime.now(),
-          text: results,
-        );
-        chatUserModel.messages.insert(0, chatMessageAI);
-        setState(() {});
-      } catch (e) {
-        print('Error processing image: $e');
-        ChatMessage chatMessageAI = ChatMessage(
-          user: ChatUserModel.geminiUser,
-          createdAt: DateTime.now(),
-          text: 'Error processing image.',
-        );
-        chatUserModel.messages.insert(0, chatMessageAI);
-        setState(() {});
-      }
+      _imageChatFeature(userInput);
     } else {
       //Using Gemini Prompt model
 
@@ -264,6 +239,37 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
     }
   }
 
+  Future<void> _imageChatFeature(String userInput) async {
+    selectedImage = false;
+    try {
+      String? response =
+          await googleGemini.getResponseWithImage(userInput, imageSelected);
+
+      results = response ?? 'No response received';
+
+      if (isTTS) {
+        flutterTts.speak(results);
+      }
+
+      ChatMessage chatMessageAI = ChatMessage(
+        user: ChatUserModel.geminiUser,
+        createdAt: DateTime.now(),
+        text: results,
+      );
+      chatUserModel.messages.insert(0, chatMessageAI);
+      setState(() {});
+    } catch (e) {
+      print('Error processing image: $e');
+      ChatMessage chatMessageAI = ChatMessage(
+        user: ChatUserModel.geminiUser,
+        createdAt: DateTime.now(),
+        text: 'Error processing image.',
+      );
+      chatUserModel.messages.insert(0, chatMessageAI);
+      setState(() {});
+    }
+  }
+
   void handleDone() {
     if (isTTS) {
       flutterTts.speak(results);
@@ -326,57 +332,74 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
             invertColors: isDart,
           ),
         ),
-        child: Column(
-          children: [
-            _promtOutputText(),
-            const SizedBox(
-              height: 12,
-            ),
-            // _buildSearch(),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      style: TextStyle(
-                        color: Colors.black,
-                      ),
-                      controller: _textController,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.white,
-                        hintText: 'Enter the question?',
-                        border: OutlineInputBorder(),
-                        suffixIcon: IconButton(
-                          onPressed: () {
-                            _pickImage();
-                          },
-                          icon: Icon(Icons.image),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              _promtOutputText(),
+              const SizedBox(
+                height: 12,
+              ),
+              // _buildSearch(),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        autofocus: true,
+                        style: TextStyle(
+                          color: Colors.black,
+                        ),
+                        onFieldSubmitted: (value) {
+                          processWithGoogleGemini();
+                        },
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return "Please Provide Text";
+                          }
+                          return null;
+                        },
+                        controller: _textController,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.white,
+                          hintText: 'Enter the question?',
+                          border: OutlineInputBorder(),
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              _pickImage();
+                            },
+                            icon: Icon(Icons.image),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(
-                    width: 5,
-                  ),
-                  SearchElevatedButton(
-                    bgColor: Colors.green.shade400,
-                    icon: Icon(Icons.mic),
-                    onPressed: () {
-                      _startListening();
-                    },
-                  ),
-                  SearchElevatedButton(
-                    bgColor: Colors.blue,
-                    icon: Icon(Icons.send),
-                    onPressed: processWithGoogleGemini,
-                    // processWithFlutterGemini();
-                  ),
-                ],
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    SubmitElevatedButton(
+                      bgColor: Colors.green.shade400,
+                      icon: Icon(Icons.mic),
+                      onPressed: () {
+                        _startListening();
+                      },
+                    ),
+                    SubmitElevatedButton(
+                      bgColor: Colors.blue,
+                      icon: Icon(Icons.send),
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          processWithGoogleGemini();
+                          // processWithFlutterGemini();
+                        }
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class SearchElevatedButton extends StatelessWidget {
-  const SearchElevatedButton({
+class SubmitElevatedButton extends StatelessWidget {
+  const SubmitElevatedButton({
     super.key,
     required this.bgColor,
     required this.icon,
