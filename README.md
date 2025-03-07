@@ -1,4 +1,4 @@
-# aigeminiapp
+# aiapp
 
 A new Flutter project.
 

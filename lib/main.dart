@@ -5,5 +5,5 @@ import 'package:flutter_gemini/flutter_gemini.dart';
 
 void main() {
   Gemini.init(apiKey: SecretKey.apiKey); //add the api key
-  runApp(const GeminiAiApp());
+  runApp(const AiApp());
 }
