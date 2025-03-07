@@ -10,9 +10,32 @@ class GeminiAiApp extends StatelessWidget {
       title: 'Gemini App',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        appBarTheme: _appBarStyleTheme(),
+        inputDecorationTheme: _inputStyleDecorationTheme(),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.deepPurple,
+        ),
       ),
       home: const GeminiAiHomePage(),
+    );
+  }
+
+  InputDecorationTheme _inputStyleDecorationTheme() {
+    return InputDecorationTheme(
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(),
+    );
+  }
+
+  AppBarTheme _appBarStyleTheme() {
+    return AppBarTheme(
+      centerTitle: true,
+      backgroundColor: Colors.blue,
+      titleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
+      iconTheme: IconThemeData(
+        color: Colors.white,
+      ),
     );
   }
 }
