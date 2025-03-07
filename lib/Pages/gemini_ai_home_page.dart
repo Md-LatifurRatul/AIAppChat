@@ -41,6 +41,7 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
   final ChatUserModel chatUserModel = ChatUserModel();
 
   bool isTTS = false;
+  bool isDart = false;
 
   @override
   void initState() {
@@ -273,20 +274,32 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.amber,
-        title: const Text('Gemini App'),
+        iconTheme: IconThemeData(
+          color: Colors.white,
+        ),
+        backgroundColor: Colors.blue,
+        title: const Text(
+          'Gemini App',
+          style: TextStyle(color: Colors.white),
+        ),
         centerTitle: true,
+        leading: IconButton(
+          onPressed: () {
+            setState(() {
+              if (isDart) {
+                isDart = false;
+              } else {
+                isDart = true;
+              }
+            });
+          },
+          icon: isDart
+              ? Icon(Icons.sunny)
+              : Icon(Icons.nightlight_round_outlined),
+        ),
         actions: [
-          InkWell(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Icon(
-                isTTS ? Icons.surround_sound : Icons.mic_off,
-                size: 30,
-                color: Colors.blueAccent,
-              ),
-            ),
-            onTap: () {
+          IconButton(
+            onPressed: () {
               setState(() {
                 if (isTTS) {
                   isTTS = false;
@@ -295,11 +308,24 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
                 }
               });
             },
-          )
+            icon: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(
+                isTTS ? Icons.surround_sound : Icons.mic_off,
+                size: 30,
+              ),
+            ),
+          ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(12),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/images/bg.png"),
+            fit: BoxFit.cover,
+            invertColors: isDart,
+          ),
+        ),
         child: Column(
           children: [
             _promtOutputText(),
@@ -307,40 +333,48 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
               height: 12,
             ),
             // _buildSearch(),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _textController,
-                    decoration: InputDecoration(
-                      hintText: 'Enter the question?',
-                      border: OutlineInputBorder(),
-                      suffixIcon: IconButton(
-                        onPressed: () {
-                          _pickImage();
-                        },
-                        icon: Icon(Icons.image),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      style: TextStyle(
+                        color: Colors.black,
+                      ),
+                      controller: _textController,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
+                        hintText: 'Enter the question?',
+                        border: OutlineInputBorder(),
+                        suffixIcon: IconButton(
+                          onPressed: () {
+                            _pickImage();
+                          },
+                          icon: Icon(Icons.image),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(
-                  width: 5,
-                ),
-                SearchElevatedButton(
-                  bgColor: Colors.green.shade400,
-                  icon: Icon(Icons.mic),
-                  onPressed: () {
-                    _startListening();
-                  },
-                ),
-                SearchElevatedButton(
-                  bgColor: Colors.blue,
-                  icon: Icon(Icons.send),
-                  onPressed: processWithGoogleGemini,
-                  // processWithFlutterGemini();
-                ),
-              ],
+                  const SizedBox(
+                    width: 5,
+                  ),
+                  SearchElevatedButton(
+                    bgColor: Colors.green.shade400,
+                    icon: Icon(Icons.mic),
+                    onPressed: () {
+                      _startListening();
+                    },
+                  ),
+                  SearchElevatedButton(
+                    bgColor: Colors.blue,
+                    icon: Icon(Icons.send),
+                    onPressed: processWithGoogleGemini,
+                    // processWithFlutterGemini();
+                  ),
+                ],
+              ),
             ),
           ],
         ),
