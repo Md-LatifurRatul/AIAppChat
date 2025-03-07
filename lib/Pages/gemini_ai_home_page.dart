@@ -280,48 +280,12 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        iconTheme: IconThemeData(
-          color: Colors.white,
-        ),
-        backgroundColor: Colors.blue,
         title: const Text(
           'Gemini App',
-          style: TextStyle(color: Colors.white),
         ),
-        centerTitle: true,
-        leading: IconButton(
-          onPressed: () {
-            setState(() {
-              if (isDart) {
-                isDart = false;
-              } else {
-                isDart = true;
-              }
-            });
-          },
-          icon: isDart
-              ? Icon(Icons.sunny)
-              : Icon(Icons.nightlight_round_outlined),
-        ),
+        leading: _appBarChangeModeButton(),
         actions: [
-          IconButton(
-            onPressed: () {
-              setState(() {
-                if (isTTS) {
-                  isTTS = false;
-                } else {
-                  isTTS = true;
-                }
-              });
-            },
-            icon: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Icon(
-                isTTS ? Icons.surround_sound : Icons.mic_off,
-                size: 30,
-              ),
-            ),
-          ),
+          _appBarVoiceModeButton(),
         ],
       ),
       body: Container(
@@ -346,34 +310,7 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: TextFormField(
-                        autofocus: true,
-                        style: TextStyle(
-                          color: Colors.black,
-                        ),
-                        onFieldSubmitted: (value) {
-                          processWithGoogleGemini();
-                        },
-                        validator: (value) {
-                          if (value!.isEmpty) {
-                            return "Please Provide Text";
-                          }
-                          return null;
-                        },
-                        controller: _textController,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.white,
-                          hintText: 'Enter the question?',
-                          border: OutlineInputBorder(),
-                          suffixIcon: IconButton(
-                            onPressed: () {
-                              _pickImage();
-                            },
-                            icon: Icon(Icons.image),
-                          ),
-                        ),
-                      ),
+                      child: _textInputField(),
                     ),
                     const SizedBox(
                       width: 5,
@@ -400,6 +337,70 @@ class _GeminiAiHomePageState extends State<GeminiAiHomePage> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _appBarVoiceModeButton() {
+    return IconButton(
+      onPressed: () {
+        setState(() {
+          if (isTTS) {
+            isTTS = false;
+          } else {
+            isTTS = true;
+          }
+        });
+      },
+      icon: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Icon(
+          isTTS ? Icons.surround_sound : Icons.mic_off,
+          size: 30,
+        ),
+      ),
+    );
+  }
+
+  Widget _appBarChangeModeButton() {
+    return IconButton(
+      onPressed: () {
+        setState(() {
+          if (isDart) {
+            isDart = false;
+          } else {
+            isDart = true;
+          }
+        });
+      },
+      icon: isDart ? Icon(Icons.sunny) : Icon(Icons.nightlight_round_outlined),
+    );
+  }
+
+  Widget _textInputField() {
+    return TextFormField(
+      autofocus: true,
+      style: TextStyle(
+        color: Colors.black,
+      ),
+      onFieldSubmitted: (value) {
+        processWithGoogleGemini();
+      },
+      validator: (value) {
+        if (value!.isEmpty) {
+          return "Please Provide Text";
+        }
+        return null;
+      },
+      controller: _textController,
+      decoration: InputDecoration(
+        hintText: 'Enter the question?',
+        suffixIcon: IconButton(
+          onPressed: () {
+            _pickImage();
+          },
+          icon: Icon(Icons.image),
         ),
       ),
     );
